@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4eee0" id="theme-color-meta">
 <title>Wordji Taipi</title>
 <style>
   :root {
@@ -39,12 +40,22 @@
 
   * { box-sizing: border-box; }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
+    /* Content can be taller than one screen (long instructions, many
+       checkboxes, wrapped letter boxes on a narrow phone) — the page must
+       be able to scroll to reach it. Horizontal scroll is still blocked
+       since nothing should ever need it. */
+    overflow-x: hidden;
+    overflow-y: auto;
     background: var(--cream);
   }
 
@@ -53,6 +64,12 @@
     color: var(--ink);
     background: radial-gradient(circle at 50% 0%, #faf5e6 0%, var(--cream) 65%);
     background-attachment: fixed;
+    /* Mobile-friendliness: no gray flash on tap, no double-tap-to-zoom
+       stealing taps during timed play (pan/pinch still work), and no
+       pull-to-refresh scroll-chaining past the top/bottom of the page. */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overscroll-behavior-y: contain;
   }
   :root[data-theme="dark"] body {
     background: radial-gradient(circle at 50% 0%, #332c1f 0%, var(--cream) 65%);
@@ -61,18 +78,23 @@
   #app {
     position: relative;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 24px;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
   }
 
   .title-text {
     font-family: var(--font-display);
-    font-size: clamp(2.2rem, 7vw, 4.4rem);
+    font-size: clamp(1.7rem, 8.5vw, 4.4rem);
     font-weight: 900;
     margin: 0 0 8px 0;
     text-transform: uppercase;
@@ -306,7 +328,7 @@
 
   .word-display {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-size: clamp(1.7rem, 7.5vw, 3.2rem);
     font-weight: 900;
     text-transform: uppercase;
     color: var(--ink);
@@ -469,16 +491,23 @@
     position: fixed;
     opacity: 0;
     pointer-events: none;
-    top: -100px;
-    left: -100px;
+    top: 0;
+    left: 0;
     width: 1px;
     height: 1px;
+    /* Must be >=16px: iOS Safari auto-zooms the whole page on focus of any
+       input with a computed font-size under 16px, and with scrolling
+       previously disabled that left the page stuck zoomed in — this was
+       very likely the "text is huge on mobile" symptom. Positioned at
+       0,0 (not off-screen) so focusing it can't trigger a scroll-into-view
+       jump either. */
+    font-size: 16px;
   }
 
   /* Score screen */
   .score-value {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 8vw, 3.4rem);
+    font-size: clamp(1.8rem, 9vw, 3.4rem);
     font-weight: 900;
     color: var(--olive-deep);
     text-align: center;
@@ -861,6 +890,73 @@
     font-size: 0.9rem;
     min-height: 1.2em;
     margin-bottom: 6px;
+  }
+
+  /* Tappable controls: no text-selection highlight from quick/repeated
+     taps during timed play. Text content (instructions, word, answers)
+     is deliberately left selectable. */
+  .round-option, .checkbox-chip, .toggle-row, .secondary-btn,
+  .mute-btn, .settings-btn, .dark-mode-btn, .high-score-btn, .help-btn,
+  .back-link, button.link-btn {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Mobile layout pass: the icon-button stack in the top-right corner is
+     fixed-pixel-positioned (44px circles, 54px apart) — on a short phone
+     screen in portrait that column alone can run a quarter of the way
+     down the viewport, so it's tightened up here. Panels, chips and the
+     letter boxes get smaller padding/gaps so more fits without wrapping
+     into extra rows, and everything gets a bit of breathing room from the
+     screen edge. */
+  @media (max-width: 520px) {
+    #app { padding: 16px; padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom)); padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+    .poster-scene { margin: 10px 0 4px 0; }
+
+    /* Flush left (matching #app's own left inset) and capped short of the
+       icon-button column on the right, instead of the default centering —
+       these panels are tall enough to sit right in the icon stack's
+       vertical range and were getting their top-right corner covered. */
+    .instructions-box, .highscore-panel, .answers-list {
+      width: calc(100vw - 88px);
+      margin-left: 0;
+      margin-right: auto;
+    }
+    .instructions-box { max-height: 58vh; padding: 16px 18px; }
+
+    .round-options { gap: 12px; margin: 18px 0; }
+    .round-option { padding: 13px 18px; font-size: 1.05rem; }
+
+    .checkbox-group { gap: 8px; max-width: 100%; }
+    .checkbox-chip { padding: 8px 12px; font-size: 0.88rem; }
+
+    .timer-bar { top: max(12px, env(safe-area-inset-top)); font-size: 1.2rem; padding: 5px 18px; }
+    .word-display { margin-top: 32px; }
+
+    .letter-box { width: 38px; height: 46px; font-size: 1.3rem; }
+    .letter-box.wide { min-width: 110px; padding: 0 14px; }
+    .box-row { gap: 7px; }
+
+    .modal-card { padding: 20px 20px; }
+    .modal-title { font-size: 1.15rem; }
+
+    .answers-list, .highscore-panel { padding: 6px 12px; }
+
+    /* Icon stack: 38px circles, 46px apart instead of 44px/54px. */
+    .mute-btn, .settings-btn, .dark-mode-btn, .high-score-btn, .help-btn {
+      width: 38px;
+      height: 38px;
+      font-size: 1.05rem;
+      right: max(10px, env(safe-area-inset-right));
+    }
+    .mute-btn { top: max(10px, env(safe-area-inset-top)); }
+    .settings-btn { top: calc(max(10px, env(safe-area-inset-top)) + 46px); }
+    .dark-mode-btn { top: calc(max(10px, env(safe-area-inset-top)) + 92px); }
+    .high-score-btn { top: calc(max(10px, env(safe-area-inset-top)) + 138px); }
+    .help-btn { top: calc(max(10px, env(safe-area-inset-top)) + 184px); }
+
+    .back-link { top: max(10px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); font-size: 0.78rem; }
   }
 </style>
 </head>
@@ -2943,6 +3039,8 @@
 
   function applyDarkMode() {
     document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
+    const themeMeta = document.getElementById("theme-color-meta");
+    if (themeMeta) themeMeta.setAttribute("content", darkMode ? "#1f1a14" : "#f4eee0");
   }
   applyDarkMode();
 
@@ -3325,7 +3423,7 @@
     const isEditing = !!userName;
 
     const heading = el("h2", "title-text", isEditing ? "Change Your Name" : "What's Your Name?");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const input = document.createElement("input");
     input.type = "text";
@@ -3408,7 +3506,7 @@
   function renderModeSelect() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", "Mode");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const optionsRow = el("div", "round-options");
     MODE_OPTIONS.forEach((mode, idx) => {
@@ -3469,7 +3567,7 @@
   function renderVocabSettings() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", "Vocabulário");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const beginBtn = el("button", "secondary-btn primary-btn", "Begin");
     beginBtn.type = "button";
@@ -3555,7 +3653,7 @@
   function renderVerbSettings() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", "Verbos");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
     layer.appendChild(heading);
 
     const customBtn = el("button", "secondary-btn", verbCustomExpanded ? "Hide Custom Settings ▴" : "Custom Settings ▾");
@@ -4075,7 +4173,7 @@
   function renderScore() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", "Time's Up!");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const scoreValue = el("div", "score-value", score + (score === 1 ? " wordji" : " wordjis"));
 
@@ -4176,7 +4274,7 @@
   function renderHighScores() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", userName ? userName + " High Score" : "High Scores");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const panel = el("div", "highscore-panel");
     panel.appendChild(buildHighScoreSection("Vocabulário", buildVocabHighScoreRows()));
@@ -4209,7 +4307,7 @@
   function renderHelp() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", "Game Modes");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const box = el("div", "instructions-box");
     box.appendChild(buildHelpSection("Vocabulário", [
@@ -4278,7 +4376,7 @@
   function renderSettings() {
     const layer = el("div", "content-layer");
     const heading = el("h2", "title-text", "Settings");
-    heading.style.fontSize = "2rem";
+    heading.style.fontSize = "clamp(1.4rem, 6.5vw, 2rem)";
 
     const nameLabel = el("div", "settings-section-label", "Name");
     const nameRow = el("div", "settings-row");
