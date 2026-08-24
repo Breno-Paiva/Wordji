@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f4eee0" id="theme-color-meta">
-<title>Wordji Taipi</title>
+<title>Wordji</title>
 <style>
   :root {
     --cream: #f4eee0;
@@ -3029,7 +3029,7 @@
    * Dark mode persistence (localStorage, same rationale as high scores —
    * remembers the player's last choice across sessions)
    * ========================================================= */
-  const DARK_MODE_STORAGE_KEY = "wordjiTaipiDarkMode";
+  const DARK_MODE_STORAGE_KEY = "wordjiDarkMode";
 
   function loadDarkMode() {
     try {
@@ -3201,12 +3201,12 @@
    * unreliable/blocked on file:// pages, localStorage is the right tool
    * for local-file data that just needs to survive between sessions)
    * ========================================================= */
-  const HIGH_SCORE_STORAGE_KEY = "wordjiTaipiHighScores";
+  const HIGH_SCORE_STORAGE_KEY = "wordjiHighScores";
   // Verb mode uses a separate bucket/key scheme — the checkbox settings are too
   // combinatorial to bucket per-exact-combination the way vocab mode buckets by
   // difficulty x language x length, so verb high scores are scoped only by
   // translate-first x round length (verbConjugationFeature.md §7).
-  const VERB_HIGH_SCORE_STORAGE_KEY = "wordjiTaipiVerbHighScores";
+  const VERB_HIGH_SCORE_STORAGE_KEY = "wordjiVerbHighScores";
 
   function loadScoresFromKey(storageKey) {
     try {
@@ -3259,7 +3259,7 @@
   /* =========================================================
    * User name persistence (localStorage, same rationale as high scores)
    * ========================================================= */
-  const USER_NAME_STORAGE_KEY = "wordjiTaipiUserName";
+  const USER_NAME_STORAGE_KEY = "wordjiUserName";
   const NAME_MAX_LENGTH = 20;
 
   function loadUserName() {
@@ -3419,7 +3419,7 @@
   function renderTitle() {
     const layer = el("div", "content-layer");
 
-    const title = el("h1", "title-text", "Wordji Taipi");
+    const title = el("h1", "title-text", "Wordji");
     const scene = buildPosterScene();
 
     layer.appendChild(title);
